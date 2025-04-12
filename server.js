@@ -7,36 +7,43 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 
-// Serve static files
+// Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API Routes
-app.use('/api/callback', require('./api/callback'));
-app.use('/api/verify', require('./api/verify'));
+app.get('/api/callback', require('./api/callback'));
+app.get('/api/verify', require('./api/verify'));
 
 // HTML Routes
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/dashboard.html'));
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-// Privacy and Terms
+// Privacy and Terms routes
 app.get('/privacy', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/privacy.html'));
+  res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
 });
 
 app.get('/terms', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/terms.html'));
+  res.sendFile(path.join(__dirname, 'public', 'terms.html'));
 });
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
+
+// Handle 404
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
