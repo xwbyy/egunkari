@@ -3,18 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google Login</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Google OAuth Login</title>
+  <link rel="stylesheet" href="/style.css">
+  <meta name="google-signin-client_id" content="1054339746495-1oiv1uf35qqcbjk63r1epda3s5ap7st8.apps.googleusercontent.com">
 </head>
 <body>
   <div class="container">
-    <h1>Login with Google</h1>
-    <button onclick="loginWithGoogle()">Login with Google</button>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo" class="google-logo">
+    <h1>Sign in with Google</h1>
+    <button onclick="loginWithGoogle()" class="google-btn">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo">
+      Continue with Google
+    </button>
+    
     <div class="legal-links">
-      <a href="/privacy">Privacy Policy</a> | 
-      <a href="/terms">Terms of Service</a>
+      <p>By continuing, you agree to our <a href="/privacy">Privacy Policy</a> and <a href="/terms">Terms of Service</a>.</p>
     </div>
   </div>
-  <script src="auth.js"></script>
+
+  <script src="/auth.js"></script>
 </body>
 </html>
