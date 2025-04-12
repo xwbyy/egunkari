@@ -1,0 +1,16 @@
+{
+  "name": "google-login-page",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "cookie": "^0.6.0",
+    "jsonwebtoken": "^9.0.2",
+    "next": "13.4.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
+}
