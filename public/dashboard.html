@@ -8,26 +8,38 @@
 </head>
 <body>
   <div class="container">
-    <h1>Dashboard</h1>
-    <p id="user-info"></p>
+    <h1>Welcome to Dashboard</h1>
+    <div id="user-info">Loading user data...</div>
     <button onclick="logout()">Logout</button>
   </div>
   <script>
     async function fetchUser() {
-      const res = await fetch('/api/verify');
-      const data = await res.json();
-      if (data.user) {
-        document.getElementById('user-info').innerText = `Halo, ${data.user.name} (${data.user.email})`;
-      } else {
+      try {
+        const res = await fetch('/api/verify');
+        const data = await res.json();
+        
+        if (data.user) {
+          document.getElementById('user-info').innerHTML = `
+            <p>Name: ${data.user.name}</p>
+            <p>Email: ${data.user.email}</p>
+            <img src="${data.user.picture}" alt="Profile Picture" width="100" style="border-radius: 50%">
+          `;
+        } else {
+          window.location.href = '/';
+        }
+      } catch (error) {
+        console.error('Error:', error);
         window.location.href = '/';
       }
     }
-    fetchUser();
 
     function logout() {
-      document.cookie = "token=; Max-Age=0";
+      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       window.location.href = '/';
     }
+
+    // Fetch user on page load
+    fetchUser();
   </script>
 </body>
 </html>
