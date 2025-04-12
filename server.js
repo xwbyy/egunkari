@@ -1,33 +1,22 @@
-require('dotenv').config();
 const express = require('express');
-const path = require('path'); // Diperbaiki dari 'express' ke 'path'
+const path = require('path');
+const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
-const { auth } = require('./api/auth/callback');
-const { verify } = require('./api/auth/verify');
+
+dotenv.config();
 
 const app = express();
-
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Routes
-app.post('/auth/callback', auth);
-app.post('/auth/verify', verify);
-
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+app.get('/dasboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/dasboard.html'));
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server berjalan di http://localhost:${PORT}`);
-});
-
-module.exports = app;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

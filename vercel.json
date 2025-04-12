@@ -1,54 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/auth/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "public/*.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/public/index.html"
-    },
-    {
-      "src": "/dashboard",
-      "dest": "/public/dashboard.html"
-    },
-    {
-      "src": "/auth/callback",
-      "dest": "/api/auth/callback.js"
-    },
-    {
-      "src": "/auth/verify",
-      "dest": "/api/auth/verify.js"
-    },
-    {
-      "src": "/style.css",
-      "dest": "/public/style.css"
-    },
-    {
-      "src": "/auth.js",
-      "dest": "/public/auth.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.googleusercontent.com data:; connect-src 'self' https://egunkarii.vercel.app;"
-        }
-      ]
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1.js" }
   ]
 }
