@@ -4,5 +4,6 @@ module.exports = {
   GOOGLE_CLIENT_SECRET: "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",
   JWT_SECRET: "rahasia_sangat_rahasia_123",
   BASE_URL: "https://egunkarii.vercel.app",
-  NODE_ENV: "production"
+  NODE_ENV: "production",
+  PORT: process.env.PORT || 3000
 };
