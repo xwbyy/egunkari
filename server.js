@@ -14,9 +14,11 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes
+// API Callback Route
 app.get('/api/callback', async (req, res) => {
   try {
+    console.log('Received callback with code:', req.query.code);
+    
     const { code } = req.query;
     
     // Exchange code for tokens
@@ -29,6 +31,7 @@ app.get('/api/callback', async (req, res) => {
     });
 
     const { access_token, id_token } = tokenResponse.data;
+    console.log('Received tokens from Google');
 
     // Get user info
     const userResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -42,6 +45,8 @@ app.get('/api/callback', async (req, res) => {
       picture: userResponse.data.picture
     };
 
+    console.log('User info:', user);
+
     // Create JWT
     const token = jwt.sign({ user }, settings.JWT_SECRET, { expiresIn: '1h' });
 
@@ -50,9 +55,11 @@ app.get('/api/callback', async (req, res) => {
       httpOnly: true,
       secure: settings.NODE_ENV === 'production',
       maxAge: 3600000, // 1 hour
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/'
     });
 
+    console.log('Redirecting to dashboard');
     res.redirect('/dashboard');
   } catch (error) {
     console.error('OAuth callback error:', error.response ? error.response.data : error.message);
@@ -60,15 +67,18 @@ app.get('/api/callback', async (req, res) => {
   }
 });
 
+// Verify Token Route
 app.get('/api/verify', (req, res) => {
   try {
     const token = req.cookies.token;
     
     if (!token) {
+      console.log('No token found');
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const decoded = jwt.verify(token, settings.JWT_SECRET);
+    console.log('Token verified for user:', decoded.user.email);
     res.json({ user: decoded.user });
   } catch (error) {
     console.error('Token verification error:', error.message);
@@ -85,7 +95,6 @@ app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-// Privacy and Terms routes
 app.get('/privacy', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
 });
@@ -101,6 +110,7 @@ app.get('/health', (req, res) => {
 
 // Handle 404
 app.use((req, res) => {
+  console.log('404 Not Found:', req.url);
   res.status(404).send('Not Found');
 });
 
@@ -108,4 +118,5 @@ const PORT = settings.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${settings.NODE_ENV || 'development'}`);
+  console.log(`Base URL: ${settings.BASE_URL}`);
 });
