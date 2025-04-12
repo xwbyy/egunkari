@@ -1,7 +1,7 @@
 function loginWithGoogle() {
   try {
     const clientId = "1054339746495-1oiv1uf35qqcbjk63r1epda3s5ap7st8.apps.googleusercontent.com";
-    const redirectUri = encodeURIComponent(window.location.origin + "/api/callback");
+    const redirectUri = encodeURIComponent("https://egunkarii.vercel.app/api/callback");
     
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
       `client_id=${clientId}` +
