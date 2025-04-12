@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
 const settings = require('./settings');
 
 const app = express();
@@ -11,14 +12,14 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from public directory
+// Serve static files (CSS, JS, images, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API Routes
 app.get('/api/callback', async (req, res) => {
   try {
     const { code } = req.query;
-    
+
     const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
       client_id: settings.GOOGLE_CLIENT_ID,
       client_secret: settings.GOOGLE_CLIENT_SECRET,
@@ -27,7 +28,7 @@ app.get('/api/callback', async (req, res) => {
       grant_type: 'authorization_code'
     });
 
-    const { access_token, id_token } = tokenResponse.data;
+    const { access_token } = tokenResponse.data;
 
     const userResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${access_token}` }
@@ -69,33 +70,27 @@ app.get('/api/verify', (req, res) => {
   }
 });
 
-// HTML Routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Dynamic HTML route mapping
+fs.readdirSync(path.join(__dirname, 'public')).forEach(file => {
+  if (file.endsWith('.html')) {
+    const routePath = '/' + file.replace('.html', '');
+    app.get(routePath === '/index' ? '/' : routePath, (req, res) => {
+      // Khusus untuk dashboard, cek token dulu
+      if (routePath === '/dashboard') {
+        const token = req.cookies.token;
+        if (!token) return res.redirect('/');
+      }
+      res.sendFile(path.join(__dirname, 'public', file));
+    });
+  }
 });
 
-app.get('/dashboard', (req, res) => {
-  // Check authentication first
-  const token = req.cookies.token;
-  if (!token) return res.redirect('/');
-  
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-app.get('/privacy', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
-});
-
-app.get('/terms', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'terms.html'));
-});
-
-// Health check endpoint
+// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
 
-// Handle 404
+// 404 fallback
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
