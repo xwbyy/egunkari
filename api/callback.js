@@ -3,57 +3,79 @@ const jwt = require('jsonwebtoken');
 
 module.exports = async (req, res) => {
   try {
-    const code = req.query.code;
-    if (!code) {
+    console.log('Callback initiated with code:', req.query.code);
+    
+    if (!req.query.code) {
       return res.status(400).send('Authorization code is required');
     }
 
     const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, BASE_URL } = process.env;
 
-    // Exchange code for tokens
-    const tokenRes = await axios.post('https://oauth2.googleapis.com/token', null, {
+    // 1. Exchange code for tokens
+    const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', null, {
       params: {
-        code,
+        code: req.query.code,
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
         redirect_uri: `${BASE_URL}/api/callback`,
         grant_type: 'authorization_code',
+      },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
       }
     });
 
-    const accessToken = tokenRes.data.access_token;
+    const accessToken = tokenResponse.data.access_token;
+    console.log('Access token received');
 
-    // Get user profile
-    const profileRes = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+    // 2. Get user profile
+    const profileResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
 
-    // Create JWT
-    const token = jwt.sign({
-      name: profileRes.data.name,
-      email: profileRes.data.email,
-      picture: profileRes.data.picture
-    }, JWT_SECRET, { expiresIn: '1h' });
+    console.log('User profile fetched:', profileResponse.data.email);
 
-    // Set cookie and redirect
-    res.cookie('token', token, { 
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 3600000, // 1 hour
-      path: '/'
-    });
-    
-    res.redirect('/dashboard');
+    // 3. Create JWT
+    const userPayload = {
+      name: profileResponse.data.name,
+      email: profileResponse.data.email,
+      picture: profileResponse.data.picture
+    };
+
+    const token = jwt.sign(userPayload, JWT_SECRET, { expiresIn: '1h' });
+
+    // 4. Set cookie and redirect
+    res.setHeader('Set-Cookie', [
+      `token=${token}; Path=/; HttpOnly; ${process.env.NODE_ENV === 'production' ? 'Secure; SameSite=None' : 'SameSite=Lax'}; Max-Age=3600`
+    ]);
+
+    console.log('Redirecting to dashboard');
+    res.redirect(302, '/dashboard');
 
   } catch (error) {
-    console.error("Callback Error:", error.response?.data || error.message);
+    console.error("Callback Error:", {
+      message: error.message,
+      response: error.response?.data,
+      stack: error.stack
+    });
+
     res.status(500).send(`
-      <h1>Login Error</h1>
-      <p>${error.message}</p>
-      <a href="/">Back to Home</a>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Login Error</title>
+        <link rel="stylesheet" href="/style.css">
+      </head>
+      <body>
+        <div class="container">
+          <h1>Login Error</h1>
+          <p>${error.message}</p>
+          <a href="/" class="button">Try Again</a>
+        </div>
+      </body>
+      </html>
     `);
   }
 };
