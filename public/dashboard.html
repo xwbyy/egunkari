@@ -31,7 +31,7 @@
         data.success ? showUserInfo(data.user) : redirectToLogin(data.message);
       } catch (error) {
         console.error('Error:', error);
-        redirectToLogin('Terjadi kesalahan');
+        redirectToLogin('Terjadi kesalahan saat memuat data');
       }
     }
 

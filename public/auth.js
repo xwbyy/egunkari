@@ -8,15 +8,21 @@ function showError(message) {
 function initGoogleAuth() {
   google.accounts.id.initialize({
     client_id: '1054339746495-1oiv1uf35qqcbjk63r1epda3s5ap7st8.apps.googleusercontent.com',
-    callback: handleCredentialResponse
+    callback: handleCredentialResponse,
+    ux_mode: 'redirect',
+    redirect_uri: 'https://egunkarii.vercel.app/auth/callback'
   });
 
   google.accounts.id.renderButton(
     document.getElementById('googleSignInButton'),
-    { theme: 'filled_blue', size: 'large', width: '300' }
+    { 
+      theme: 'filled_blue', 
+      size: 'large',
+      width: '300',
+      text: 'signin_with'
+    }
   );
 
-  // Cek error dari URL
   const urlParams = new URLSearchParams(window.location.search);
   const error = urlParams.get('error');
   if (error) showError(decodeURIComponent(error));
