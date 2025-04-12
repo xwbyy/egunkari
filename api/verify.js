@@ -1,44 +1,19 @@
+// api/verify.js
 const jwt = require('jsonwebtoken');
+const settings = require('../settings');
 
 module.exports = (req, res) => {
   try {
-    // Get token from cookies
-    const token = req.cookies?.token || 
-                 req.headers?.authorization?.split(' ')[1];
+    const token = req.cookies.token;
     
     if (!token) {
-      console.log('No token found');
-      return res.status(401).json({ 
-        error: 'Authentication required',
-        redirect: '/'
-      });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Verify token
-    const user = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('User verified:', user.email);
-    
-    res.status(200).json({ 
-      user: {
-        name: user.name,
-        email: user.email,
-        picture: user.picture
-      }
-    });
-
+    const decoded = jwt.verify(token, settings.JWT_SECRET);
+    res.json({ user: decoded.user });
   } catch (error) {
     console.error('Token verification error:', error.message);
-    
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ 
-        error: 'Session expired',
-        redirect: '/'
-      });
-    }
-    
-    res.status(401).json({ 
-      error: 'Invalid authentication',
-      redirect: '/'
-    });
+    res.status(401).json({ error: 'Invalid token' });
   }
 };
