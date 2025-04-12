@@ -23,17 +23,17 @@
         const response = await fetch('/api/verify', {
           credentials: 'include'
         });
-        
+
         console.log('Response status:', response.status);
-        
+
         if (response.redirected) {
           console.log('Redirect detected, going to home');
           return window.location.href = '/';
         }
-        
+
         const data = await response.json();
         console.log('User data:', data);
-        
+
         if (data.user) {
           document.getElementById('user-info').innerHTML = `
             <img src="${data.user.picture}" alt="Profile" class="profile-pic">
@@ -51,13 +51,10 @@
     }
 
     function logout() {
-      console.log('Logging out...');
-      // Clear cookie and redirect
       document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      window.location.href = '/';
+      window.location.href = '/';  // Pastikan redirect ke root tanpa .html
     }
 
-    // Load user when page loads
     document.addEventListener('DOMContentLoaded', fetchUser);
   </script>
 </body>
