@@ -12,14 +12,13 @@ module.exports = async (req, res) => {
     const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, BASE_URL } = process.env;
 
     // 1. Exchange code for tokens
-    const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', null, {
-      params: {
-        code: req.query.code,
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: `${BASE_URL}/api/callback`,
-        grant_type: 'authorization_code',
-      },
+    const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', new URLSearchParams({
+      code: req.query.code,
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      redirect_uri: `${BASE_URL}/api/callback`,
+      grant_type: 'authorization_code',
+    }), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       }
