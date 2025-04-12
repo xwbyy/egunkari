@@ -4,20 +4,14 @@
     {
       "src": "api/auth/*.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "public/*.html",
-      "use": "@vercel/static"
     }
   ],
   "rewrites": [
-    { "source": "/", "destination": "/public/index.html" },
-    { "source": "/dashboard", "destination": "/public/dashboard.html" },
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
     { "source": "/auth/callback", "destination": "/api/auth/callback.js" },
     { "source": "/auth/verify", "destination": "/api/auth/verify.js" },
-    { "source": "/style.css", "destination": "/public/style.css" },
-    { "source": "/auth.js", "destination": "/public/auth.js" },
-    { "source": "/(.*)", "destination": "/public/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
