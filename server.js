@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Callback Route
+// API Routes
 app.get('/api/callback', async (req, res) => {
   try {
     const { code } = req.query;
@@ -57,7 +57,6 @@ app.get('/api/callback', async (req, res) => {
   }
 });
 
-// Verify Token Route
 app.get('/api/verify', (req, res) => {
   try {
     const token = req.cookies.token;
@@ -70,12 +69,39 @@ app.get('/api/verify', (req, res) => {
   }
 });
 
+// HTML Routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/dashboard', (req, res) => {
+  // Check authentication first
+  const token = req.cookies.token;
+  if (!token) return res.redirect('/');
+  
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+app.get('/privacy', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
+});
+
+app.get('/terms', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'terms.html'));
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
 
+// Handle 404
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
 const PORT = settings.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${settings.NODE_ENV || 'development'}`);
 });
