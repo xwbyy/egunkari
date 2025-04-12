@@ -16,6 +16,22 @@
       "dest": "/server.js"
     },
     {
+      "src": "/dashboard",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/privacy",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/terms",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/",
+      "dest": "/server.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }

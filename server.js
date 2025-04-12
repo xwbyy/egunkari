@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/static', express.static(path.join(__dirname, 'public')));
 
 // API Routes
 app.get('/api/callback', async (req, res) => {
@@ -52,7 +53,7 @@ app.get('/api/callback', async (req, res) => {
 
     res.redirect('/dashboard');
   } catch (error) {
-    console.error('OAuth callback error:', error);
+    console.error('OAuth callback error:', error.response ? error.response.data : error.message);
     res.redirect('/?error=auth_failed');
   }
 });
@@ -74,7 +75,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Dashboard route with token verification
 app.get('/dashboard', (req, res) => {
   const token = req.cookies.token;
   if (!token) return res.redirect('/');
