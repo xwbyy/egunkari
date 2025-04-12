@@ -9,44 +9,22 @@
 <body>
   <div class="dashboard-container">
     <h1>Selamat Datang di Dashboard</h1>
-    <div id="loading" class="loading-message">Memuat data pengguna...</div>
+    
+    <div id="loadingIndicator" class="loading-indicator">
+      Memuat data pengguna...
+    </div>
+    
     <div id="userInfo" class="user-info" style="display:none;"></div>
-    <button id="signOutButton" class="logout-btn" style="display:none;">Keluar</button>
+    
+    <button id="signOutButton" class="logout-btn" style="display:none;">
+      Keluar
+    </button>
   </div>
 
   <script>
-    async function loadUserData() {
-      const token = localStorage.getItem('jwt_token');
-      if (!token) {
-        return redirectToLogin('Silakan login terlebih dahulu');
-      }
-
-      try {
-        console.log('Memverifikasi token...');
-        const res = await fetch('/auth/verify', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        const data = await res.json();
-        if (data.success) {
-          console.log('Data user:', data.user);
-          showUserInfo(data.user);
-        } else {
-          console.error('Error dari server:', data.message);
-          redirectToLogin(data.message);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        redirectToLogin('Terjadi kesalahan saat memuat data');
-      }
-    }
-
-    function showUserInfo(user) {
-      document.getElementById('loading').style.display = 'none';
+    // Fungsi untuk menampilkan data user
+    function displayUserInfo(user) {
+      document.getElementById('loadingIndicator').style.display = 'none';
       
       const userInfoDiv = document.getElementById('userInfo');
       userInfoDiv.style.display = 'block';
@@ -57,19 +35,51 @@
         <img src="${user.picture}" alt="Foto Profil" class="profile-pic">
       `;
 
-      const logoutBtn = document.getElementById('signOutButton');
-      logoutBtn.style.display = 'block';
-      logoutBtn.onclick = () => {
-        localStorage.removeItem('jwt_token');
-        window.location.href = '/';
-      };
+      document.getElementById('signOutButton').style.display = 'block';
     }
 
+    // Fungsi untuk redirect ke login
     function redirectToLogin(message) {
       localStorage.removeItem('jwt_token');
       window.location.href = `/?error=${encodeURIComponent(message || 'Sesi telah berakhir')}`;
     }
 
+    // Load user data
+    async function loadUserData() {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        return redirectToLogin('Silakan login terlebih dahulu');
+      }
+
+      try {
+        const response = await fetch('/auth/verify', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          displayUserInfo(data.user);
+          
+          // Setup logout button
+          document.getElementById('signOutButton').onclick = () => {
+            localStorage.removeItem('jwt_token');
+            window.location.href = '/';
+          };
+        } else {
+          redirectToLogin(data.message);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        redirectToLogin('Terjadi kesalahan saat memuat data');
+      }
+    }
+
+    // Initialize saat halaman dimuat
     window.onload = loadUserData;
   </script>
 </body>

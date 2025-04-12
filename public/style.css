@@ -37,15 +37,24 @@ body {
   padding: 10px;
   border-radius: 5px;
   margin-top: 20px;
+  display: none;
 }
 
-/* Tombol Google */
-.g_id_signin iframe {
-  margin: 0 auto !important;
-  display: block !important;
+.loading-indicator {
+  color: #17a2b8;
+  background-color: #d1ecf1;
+  border: 1px solid #bee5eb;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 20px;
 }
 
-/* Fallback button */
+/* Google Button */
+.g_id_signin {
+  margin: 20px auto;
+}
+
+/* Fallback Button */
 .fallback-btn {
   background-color: #4285f4;
   color: white;
@@ -57,8 +66,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 20px auto;
-  max-width: 300px;
+  margin: 0 auto;
+  width: 300px;
 }
 
 .fallback-btn:hover {
@@ -109,5 +118,9 @@ body {
   .login-container, .dashboard-container {
     margin: 20px;
     padding: 20px;
+  }
+  
+  .fallback-btn {
+    width: 100%;
   }
 }
