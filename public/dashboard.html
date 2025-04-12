@@ -9,16 +9,20 @@
 <body>
   <div class="dashboard-container">
     <h1>Selamat Datang di Dashboard</h1>
-    <div id="userInfo" class="user-info"></div>
-    <button id="signOutButton" class="logout-btn">Keluar</button>
+    <div id="loading" class="loading-message">Memuat data pengguna...</div>
+    <div id="userInfo" class="user-info" style="display:none;"></div>
+    <button id="signOutButton" class="logout-btn" style="display:none;">Keluar</button>
   </div>
 
   <script>
     async function loadUserData() {
       const token = localStorage.getItem('jwt_token');
-      if (!token) return redirectToLogin('Silakan login terlebih dahulu');
+      if (!token) {
+        return redirectToLogin('Silakan login terlebih dahulu');
+      }
 
       try {
+        console.log('Memverifikasi token...');
         const res = await fetch('/auth/verify', {
           method: 'POST',
           headers: { 
@@ -28,7 +32,13 @@
         });
         
         const data = await res.json();
-        data.success ? showUserInfo(data.user) : redirectToLogin(data.message);
+        if (data.success) {
+          console.log('Data user:', data.user);
+          showUserInfo(data.user);
+        } else {
+          console.error('Error dari server:', data.message);
+          redirectToLogin(data.message);
+        }
       } catch (error) {
         console.error('Error:', error);
         redirectToLogin('Terjadi kesalahan saat memuat data');
@@ -36,20 +46,27 @@
     }
 
     function showUserInfo(user) {
-      document.getElementById('userInfo').innerHTML = `
+      document.getElementById('loading').style.display = 'none';
+      
+      const userInfoDiv = document.getElementById('userInfo');
+      userInfoDiv.style.display = 'block';
+      userInfoDiv.innerHTML = `
         <h3>Informasi Pengguna</h3>
         <p><strong>Nama:</strong> ${user.name}</p>
         <p><strong>Email:</strong> ${user.email}</p>
         <img src="${user.picture}" alt="Foto Profil" class="profile-pic">
       `;
 
-      document.getElementById('signOutButton').onclick = () => {
+      const logoutBtn = document.getElementById('signOutButton');
+      logoutBtn.style.display = 'block';
+      logoutBtn.onclick = () => {
         localStorage.removeItem('jwt_token');
         window.location.href = '/';
       };
     }
 
     function redirectToLogin(message) {
+      localStorage.removeItem('jwt_token');
       window.location.href = `/?error=${encodeURIComponent(message || 'Sesi telah berakhir')}`;
     }
 
