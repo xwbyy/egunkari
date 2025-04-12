@@ -1,9 +1,10 @@
 {
-  "name": "google-oauth-vercel-fixed",
-  "version": "1.0.1",
-  "description": "Aplikasi login Google untuk Vercel (Fixed)",
+  "name": "google-oauth-vercel-final",
+  "version": "1.0.0",
+  "description": "Aplikasi login Google untuk Vercel (Final)",
   "scripts": {
     "start": "vercel dev",
+    "dev": "vercel dev",
     "deploy": "vercel --prod"
   },
   "dependencies": {
