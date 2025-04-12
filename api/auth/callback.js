@@ -5,15 +5,26 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 module.exports = async (req, res) => {
   try {
-    const { token } = req.body;
+    console.log('Memproses callback login Google...');
     
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token tidak ditemukan'
+      });
+    }
+
+    // Verify Google token
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
-    
+    console.log('User yang login:', payload.email);
+
+    // Buat JWT token
     const userToken = jwt.sign(
       {
         id: payload.sub,
@@ -36,10 +47,10 @@ module.exports = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error verifying Google token:', error);
+    console.error('Error saat verifikasi token Google:', error);
     res.status(400).json({
       success: false,
-      message: 'Token tidak valid atau telah kadaluarsa'
+      message: 'Autentikasi gagal: ' + error.message
     });
   }
 };
