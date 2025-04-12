@@ -1,86 +1,33 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="dashboard-container">
-    <h1>Selamat Datang di Dashboard</h1>
-    
-    <div id="loadingIndicator" class="loading-indicator">
-      Memuat data pengguna...
-    </div>
-    
-    <div id="userInfo" class="user-info" style="display:none;"></div>
-    
-    <button id="signOutButton" class="logout-btn" style="display:none;">
-      Keluar
-    </button>
+  <div class="container">
+    <h1>Dashboard</h1>
+    <p id="user-info"></p>
+    <button onclick="logout()">Logout</button>
   </div>
-
   <script>
-    // Fungsi untuk menampilkan data user
-    function displayUserInfo(user) {
-      document.getElementById('loadingIndicator').style.display = 'none';
-      
-      const userInfoDiv = document.getElementById('userInfo');
-      userInfoDiv.style.display = 'block';
-      userInfoDiv.innerHTML = `
-        <h3>Informasi Pengguna</h3>
-        <p><strong>Nama:</strong> ${user.name}</p>
-        <p><strong>Email:</strong> ${user.email}</p>
-        <img src="${user.picture}" alt="Foto Profil" class="profile-pic">
-      `;
-
-      document.getElementById('signOutButton').style.display = 'block';
-    }
-
-    // Fungsi untuk redirect ke login
-    function redirectToLogin(message) {
-      localStorage.removeItem('jwt_token');
-      window.location.href = `/?error=${encodeURIComponent(message || 'Sesi telah berakhir')}`;
-    }
-
-    // Load user data
-    async function loadUserData() {
-      const token = localStorage.getItem('jwt_token');
-      if (!token) {
-        return redirectToLogin('Silakan login terlebih dahulu');
-      }
-
-      try {
-        const response = await fetch('/auth/verify', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          displayUserInfo(data.user);
-          
-          // Setup logout button
-          document.getElementById('signOutButton').onclick = () => {
-            localStorage.removeItem('jwt_token');
-            window.location.href = '/';
-          };
-        } else {
-          redirectToLogin(data.message);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        redirectToLogin('Terjadi kesalahan saat memuat data');
+    async function fetchUser() {
+      const res = await fetch('/api/verify');
+      const data = await res.json();
+      if (data.user) {
+        document.getElementById('user-info').innerText = `Halo, ${data.user.name} (${data.user.email})`;
+      } else {
+        window.location.href = '/';
       }
     }
+    fetchUser();
 
-    // Initialize saat halaman dimuat
-    window.onload = loadUserData;
+    function logout() {
+      document.cookie = "token=; Max-Age=0";
+      window.location.href = '/';
+    }
   </script>
 </body>
 </html>
