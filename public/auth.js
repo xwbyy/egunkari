@@ -5,34 +5,15 @@ function showError(message) {
   setTimeout(() => errorElement.style.display = 'none', 5000);
 }
 
-function initGoogleAuth() {
-  google.accounts.id.initialize({
-    client_id: '1054339746495-1oiv1uf35qqcbjk63r1epda3s5ap7st8.apps.googleusercontent.com',
-    callback: handleCredentialResponse,
-    ux_mode: 'redirect',
-    redirect_uri: 'https://egunkarii.vercel.app/auth/callback'
-  });
-
-  google.accounts.id.renderButton(
-    document.getElementById('googleSignInButton'),
-    { 
-      theme: 'filled_blue', 
-      size: 'large',
-      width: '300',
-      text: 'signin_with'
-    }
-  );
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const error = urlParams.get('error');
-  if (error) showError(decodeURIComponent(error));
-}
-
 async function handleCredentialResponse(response) {
   try {
+    console.log('Google response:', response); // Debug
+    
     const res = await fetch('/auth/callback', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ token: response.credential })
     });
 
@@ -50,4 +31,15 @@ async function handleCredentialResponse(response) {
   }
 }
 
-window.onload = initGoogleAuth;
+// Cek error dari URL
+window.onload = function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+  if (error) showError(decodeURIComponent(error));
+  
+  // Debugging
+  console.log('Google client loaded:', typeof google !== 'undefined');
+  if (typeof google === 'undefined') {
+    showError('Google Sign-In library gagal dimuat. Silakan refresh halaman.');
+  }
+};

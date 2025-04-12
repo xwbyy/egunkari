@@ -10,11 +10,33 @@
   <div class="login-container">
     <h1>Login ke Aplikasi</h1>
     <p>Silakan login dengan akun Google Anda</p>
-    <div id="googleSignInButton"></div>
+    
+    <!-- Div untuk tombol Google -->
+    <div id="g_id_onload"
+         data-client_id="1054339746495-1oiv1uf35qqcbjk63r1epda3s5ap7st8.apps.googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+
+    <div class="g_id_signin"
+         data-type="standard"
+         data-shape="rectangular"
+         data-theme="filled_blue"
+         data-text="signin_with"
+         data-size="large"
+         data-logo_alignment="left"
+         data-width="300">
+    </div>
+
     <div id="errorMessage" class="error-message"></div>
   </div>
 
+  <!-- Load Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+  <!-- Script custom kita -->
   <script src="/auth.js"></script>
 </body>
 </html>
