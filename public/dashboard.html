@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to Dashboard</h1>
+    <div id="user-info">
+      <p>Loading user information...</p>
+    </div>
+    <button onclick="logout()">Logout</button>
+  </div>
+  <script>
+    async function fetchUser() {
+      try {
+        const response = await fetch('/api/verify');
+        const data = await response.json();
+        
+        if (data.user) {
+          document.getElementById('user-info').innerHTML = `
+            <img src="${data.user.picture}" alt="Profile" class="profile-pic">
+            <h2>${data.user.name}</h2>
+            <p>${data.user.email}</p>
+          `;
+        } else {
+          window.location.href = '/';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        window.location.href = '/';
+      }
+    }
+
+    function logout() {
+      document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      window.location.href = '/';
+    }
+
+    // Load user when page loads
+    fetchUser();
+  </script>
+</body>
+</html>
