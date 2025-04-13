@@ -14,6 +14,8 @@ module.exports = {
   FIREBASE_MESSAGING_SENDER_ID: "1023582590091",
   FIREBASE_APP_ID: "1:1023582590091:web:762e77a8f8e04acbb6708e",
   FIREBASE_MEASUREMENT_ID: "G-TSSKT7E60W",
+  FIREBASE_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n",
+  FIREBASE_CLIENT_EMAIL: `firebase-adminsdk@egunkari-22fcb.iam.gserviceaccount.com`,
   
   // Aplikasi
   APP_NAME: "Egunkari",

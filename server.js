@@ -12,8 +12,8 @@ const settings = require('./settings');
 admin.initializeApp({
   credential: admin.credential.cert({
     projectId: settings.FIREBASE_PROJECT_ID,
-    clientEmail: `firebase-adminsdk@${settings.FIREBASE_PROJECT_ID}.iam.gserviceaccount.com`,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+    clientEmail: settings.FIREBASE_CLIENT_EMAIL,
+    privateKey: settings.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
   }),
   databaseURL: `https://${settings.FIREBASE_PROJECT_ID}.firebaseio.com`
 });
@@ -154,4 +154,5 @@ const PORT = settings.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${settings.NODE_ENV || 'development'}`);
+  console.log(`Base URL: ${settings.BASE_URL}`);
 });
