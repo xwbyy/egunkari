@@ -35,5 +35,8 @@
       "src": "/(.*)",
       "dest": "/public/$1"
     }
-  ]
+  ],
+  "env": {
+    "FIREBASE_PRIVATE_KEY": "@firebase_private_key"
+  }
 }

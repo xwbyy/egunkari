@@ -4,12 +4,28 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
+const admin = require('firebase-admin');
 const settings = require('./settings');
+
+// Initialize Firebase Admin
+admin.initializeApp({
+  credential: admin.credential.cert({
+    projectId: settings.FIREBASE_PROJECT_ID,
+    clientEmail: `firebase-adminsdk@${settings.FIREBASE_PROJECT_ID}.iam.gserviceaccount.com`,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+  }),
+  databaseURL: `https://${settings.FIREBASE_PROJECT_ID}.firebaseio.com`
+});
 
 const app = express();
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin: settings.BASE_URL,
+  credentials: true
+}));
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -38,7 +54,8 @@ app.get('/api/callback', async (req, res) => {
       id: userResponse.data.sub,
       name: userResponse.data.name,
       email: userResponse.data.email,
-      picture: userResponse.data.picture
+      picture: userResponse.data.picture,
+      provider: 'google'
     };
 
     const token = jwt.sign({ user }, settings.JWT_SECRET, { expiresIn: '1h' });
@@ -55,6 +72,40 @@ app.get('/api/callback', async (req, res) => {
   } catch (error) {
     console.error('OAuth callback error:', error.response ? error.response.data : error.message);
     res.redirect('/?error=auth_failed');
+  }
+});
+
+// Firebase Login Endpoint
+app.post('/api/firebase-login', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    
+    // Verify Firebase ID token
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const userRecord = await admin.auth().getUser(decodedToken.uid);
+
+    const user = {
+      id: userRecord.uid,
+      name: userRecord.displayName || userRecord.email.split('@')[0],
+      email: userRecord.email,
+      picture: userRecord.photoURL || '/static/default-profile.png',
+      provider: 'firebase'
+    };
+
+    const token = jwt.sign({ user }, settings.JWT_SECRET, { expiresIn: '1h' });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: settings.NODE_ENV === 'production',
+      maxAge: 3600000,
+      sameSite: 'lax',
+      path: '/'
+    });
+
+    res.json({ success: true, redirect: '/dashboard' });
+  } catch (error) {
+    console.error('Firebase login error:', error);
+    res.status(401).json({ error: 'Authentication failed' });
   }
 });
 
