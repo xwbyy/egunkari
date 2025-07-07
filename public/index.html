@@ -3,64 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Egunkari - Platform untuk Penulis</title>
+  <title>Egunkari - Platform Penulisan Kreatif</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div id="app">
-    <!-- Navigation -->
-    <nav class="navbar">
+    <!-- Header -->
+    <header class="header">
       <div class="container">
-        <a href="#" class="logo">Egunkari</a>
-        <div class="nav-links">
-          <a href="#" data-page="home">Beranda</a>
-          <a href="#" data-page="explore">Jelajahi</a>
-          <a href="#" data-page="profile">Profil</a>
-          <div class="auth-buttons">
-            <button id="login-btn" class="btn btn-outline">Masuk</button>
-            <button id="register-btn" class="btn btn-primary">Daftar</button>
-          </div>
-          <div class="user-menu hidden">
-            <img id="user-avatar" src="icons/user-default.png" alt="User">
-            <div class="dropdown">
-              <a href="#" data-page="profile">Profil</a>
-              <a href="#" id="logout-btn">Keluar</a>
-            </div>
-          </div>
+        <h1 class="logo">Egunkari</h1>
+        <nav class="nav">
+          <a href="/" class="nav-link" data-page="home">Beranda</a>
+          <a href="/explore" class="nav-link" data-page="explore">Jelajahi</a>
+          <a href="/profile" class="nav-link" data-page="profile">Profil</a>
+        </nav>
+        <div class="auth-buttons">
+          <button id="auth-button" class="btn btn-primary">Masuk</button>
+          <button id="theme-toggle" class="btn btn-icon">
+            <img src="icons/moon.svg" alt="Dark mode" class="icon dark-icon">
+            <img src="icons/sun.svg" alt="Light mode" class="icon light-icon">
+          </button>
         </div>
-        <button class="theme-toggle">
-          <i class="fas fa-moon"></i>
-        </button>
-        <button class="mobile-menu-btn">
-          <i class="fas fa-bars"></i>
-        </button>
       </div>
-    </nav>
-
-    <!-- Mobile Menu -->
-    <div class="mobile-menu hidden">
-      <a href="#" data-page="home">Beranda</a>
-      <a href="#" data-page="explore">Jelajahi</a>
-      <a href="#" data-page="profile">Profil</a>
-      <div class="auth-buttons">
-        <button id="mobile-login-btn" class="btn btn-outline">Masuk</button>
-        <button id="mobile-register-btn" class="btn btn-primary">Daftar</button>
-      </div>
-      <div class="user-menu hidden">
-        <a href="#" data-page="profile">Profil</a>
-        <a href="#" id="mobile-logout-btn">Keluar</a>
-      </div>
-    </div>
+    </header>
 
     <!-- Main Content -->
-    <main class="container">
-      <!-- Auth Modals -->
-      <div id="login-modal" class="modal hidden">
+    <main class="main-content">
+      <!-- Auth Modal -->
+      <div id="auth-modal" class="modal">
         <div class="modal-content">
-          <span class="close">&times;</span>
-          <h2>Masuk ke Egunkari</h2>
-          <form id="login-form">
+          <span class="close-modal">&times;</span>
+          <div class="auth-tabs">
+            <button class="tab-btn active" data-tab="login">Masuk</button>
+            <button class="tab-btn" data-tab="register">Daftar</button>
+          </div>
+          
+          <form id="login-form" class="auth-form">
             <div class="form-group">
               <label for="login-email">Email</label>
               <input type="email" id="login-email" required>
@@ -69,19 +48,13 @@
               <label for="login-password">Password</label>
               <input type="password" id="login-password" required>
             </div>
-            <button type="submit" class="btn btn-primary">Masuk</button>
+            <button type="submit" class="btn btn-primary btn-block">Masuk</button>
           </form>
-        </div>
-      </div>
-
-      <div id="register-modal" class="modal hidden">
-        <div class="modal-content">
-          <span class="close">&times;</span>
-          <h2>Daftar ke Egunkari</h2>
-          <form id="register-form">
+          
+          <form id="register-form" class="auth-form" style="display: none;">
             <div class="form-group">
-              <label for="register-name">Nama</label>
-              <input type="text" id="register-name" required>
+              <label for="register-username">Username</label>
+              <input type="text" id="register-username" required>
             </div>
             <div class="form-group">
               <label for="register-email">Email</label>
@@ -91,143 +64,124 @@
               <label for="register-password">Password</label>
               <input type="password" id="register-password" required>
             </div>
-            <button type="submit" class="btn btn-primary">Daftar</button>
+            <button type="submit" class="btn btn-primary btn-block">Daftar</button>
           </form>
         </div>
       </div>
 
-      <!-- Pages -->
-      <div id="home-page" class="page">
-        <div class="hero">
-          <h1>Tempat Berkarya untuk Penulis</h1>
-          <p>Bagikan puisi, cerita, dan pemikiran Anda dengan dunia</p>
-          <button id="hero-cta" class="btn btn-primary">Mulai Menulis</button>
-        </div>
-
-        <div class="feed">
-          <h2>Karya Terbaru</h2>
-          <div id="posts-container" class="posts-grid">
-            <!-- Posts will be loaded here -->
+      <!-- Home Page -->
+      <div id="home-page" class="page active">
+        <div class="container">
+          <div class="hero">
+            <h2>Selamat datang di Egunkari</h2>
+            <p>Platform untuk mengekspresikan kreativitas melalui tulisan. Bagikan puisi, cerita, atau pemikiran Anda dengan dunia.</p>
+            <button id="create-post-btn" class="btn btn-primary">Buat Tulisan Baru</button>
+          </div>
+          
+          <div class="posts-container">
+            <h3>Karya Terbaru</h3>
+            <div id="posts-list" class="posts-list"></div>
           </div>
         </div>
       </div>
 
-      <div id="explore-page" class="page hidden">
-        <h2>Jelajahi Karya</h2>
-        <div class="filters">
-          <input type="text" id="search-posts" placeholder="Cari karya...">
-          <select id="filter-category">
-            <option value="all">Semua Kategori</option>
-            <option value="poem">Puisi</option>
-            <option value="story">Cerita</option>
-            <option value="thought">Pemikiran</option>
-          </select>
-        </div>
-        <div id="explore-posts" class="posts-grid">
-          <!-- Explore posts will be loaded here -->
+      <!-- Explore Page -->
+      <div id="explore-page" class="page">
+        <div class="container">
+          <h2>Jelajahi Karya</h2>
+          <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Cari judul, penulis, atau tag...">
+            <button id="search-btn" class="btn btn-primary"><i class="fas fa-search"></i></button>
+          </div>
+          <div id="explore-posts" class="posts-list"></div>
         </div>
       </div>
 
-      <div id="profile-page" class="page hidden">
-        <div class="profile-header">
-          <img id="profile-avatar" src="icons/user-default.png" alt="Profile">
-          <div class="profile-info">
-            <h2 id="profile-name">Nama Pengguna</h2>
-            <p id="profile-email">email@example.com</p>
-            <div class="profile-stats">
-              <span id="profile-posts-count">0 Karya</span>
-              <span id="profile-followers-count">0 Pengikut</span>
+      <!-- Profile Page -->
+      <div id="profile-page" class="page">
+        <div class="container">
+          <div id="profile-header" class="profile-header">
+            <div class="profile-info">
+              <h2 id="profile-username"></h2>
+              <p id="profile-email"></p>
+              <div class="profile-stats">
+                <span id="profile-posts-count">0 Tulisan</span>
+                <span id="profile-followers">0 Pengikut</span>
+                <span id="profile-following">0 Mengikuti</span>
+              </div>
+              <button id="follow-btn" class="btn btn-outline">Ikuti</button>
             </div>
-            <button id="edit-profile-btn" class="btn btn-outline">Edit Profil</button>
           </div>
-        </div>
-
-        <div class="profile-tabs">
-          <button class="tab-btn active" data-tab="my-posts">Karya Saya</button>
-          <button class="tab-btn" data-tab="saved-posts">Disimpan</button>
-        </div>
-
-        <div class="tab-content active" id="my-posts">
-          <button id="create-post-btn" class="btn btn-primary">Buat Karya Baru</button>
-          <div id="user-posts" class="posts-list">
-            <!-- User posts will be loaded here -->
+          
+          <div class="profile-tabs">
+            <button class="tab-btn active" data-tab="profile-posts">Tulisan</button>
+            <button class="tab-btn" data-tab="profile-likes">Disukai</button>
           </div>
-        </div>
-
-        <div class="tab-content" id="saved-posts">
-          <div id="saved-posts-list" class="posts-list">
-            <!-- Saved posts will be loaded here -->
+          
+          <div id="profile-posts-tab" class="tab-content active">
+            <div id="user-posts" class="posts-list"></div>
+          </div>
+          
+          <div id="profile-likes-tab" class="tab-content">
+            <div id="liked-posts" class="posts-list"></div>
           </div>
         </div>
       </div>
 
-      <div id="post-page" class="page hidden">
-        <div id="post-detail">
-          <!-- Single post will be loaded here -->
-        </div>
-        <div id="comments-section">
-          <h3>Komentar</h3>
-          <div id="comments-list">
-            <!-- Comments will be loaded here -->
-          </div>
-          <form id="add-comment-form" class="hidden">
-            <textarea id="comment-content" placeholder="Tulis komentar..."></textarea>
-            <button type="submit" class="btn btn-primary">Kirim</button>
+      <!-- Create Post Modal -->
+      <div id="create-post-modal" class="modal">
+        <div class="modal-content">
+          <span class="close-modal">&times;</span>
+          <h2>Buat Tulisan Baru</h2>
+          <form id="post-form">
+            <div class="form-group">
+              <label for="post-title">Judul</label>
+              <input type="text" id="post-title" required>
+            </div>
+            <div class="form-group">
+              <label for="post-content">Isi</label>
+              <textarea id="post-content" rows="10" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="post-tags">Tag (pisahkan dengan koma)</label>
+              <input type="text" id="post-tags" placeholder="puisi, cinta, harapan">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Publikasikan</button>
           </form>
         </div>
       </div>
 
-      <div id="create-post-page" class="page hidden">
-        <h2>Buat Karya Baru</h2>
-        <form id="create-post-form">
-          <div class="form-group">
-            <label for="post-title">Judul</label>
-            <input type="text" id="post-title" required>
+      <!-- Post Detail Page -->
+      <div id="post-page" class="page">
+        <div class="container">
+          <button id="back-btn" class="btn btn-icon"><i class="fas fa-arrow-left"></i> Kembali</button>
+          <div id="post-detail" class="post-detail"></div>
+          
+          <div class="comments-section">
+            <h3>Komentar</h3>
+            <form id="comment-form">
+              <textarea id="comment-text" placeholder="Tulis komentar..." required></textarea>
+              <button type="submit" class="btn btn-primary">Kirim</button>
+            </form>
+            <div id="comments-list" class="comments-list"></div>
           </div>
-          <div class="form-group">
-            <label for="post-content">Isi</label>
-            <textarea id="post-content" rows="10" required></textarea>
-          </div>
-          <div class="form-group">
-            <label for="post-category">Kategori</label>
-            <select id="post-category">
-              <option value="poem">Puisi</option>
-              <option value="story">Cerita</option>
-              <option value="thought">Pemikiran</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary">Publikasikan</button>
-        </form>
+        </div>
       </div>
     </main>
 
     <!-- Footer -->
-    <footer>
+    <footer class="footer">
       <div class="container">
-        <div class="footer-content">
-          <div class="footer-section">
-            <h3>Egunkari</h3>
-            <p>Platform untuk penulis puisi dan cerita</p>
-          </div>
-          <div class="footer-section">
-            <h3>Tautan</h3>
-            <a href="#">Tentang</a>
-            <a href="#">Kebijakan Privasi</a>
-            <a href="#">Ketentuan Layanan</a>
-          </div>
-          <div class="footer-section">
-            <h3>Kontak</h3>
-            <a href="mailto:info@egunkari.com">info@egunkari.com</a>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <p>&copy; 2023 Egunkari. All rights reserved.</p>
+        <p>&copy; 2023 Egunkari. Semua hak dilindungi.</p>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-facebook"></i></a>
         </div>
       </div>
     </footer>
   </div>
 
-  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
