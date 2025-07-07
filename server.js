@@ -1,207 +1,300 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const { auth } = require('googleapis');
-const { 
-  authenticate, 
-  getUsers, 
-  createUser, 
-  getUserByEmail, 
-  getUserById, 
-  createPost, 
-  getPosts, 
-  getPostById, 
-  likePost, 
-  addComment, 
-  followUser 
-} = require('./google-sheets');
+const { authenticate, readData, writeData } = require('./google-sheets');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ success: false, message: 'Internal Server Error' });
-});
+// JWT Secret
+const JWT_SECRET = process.env.JWT_SECRET || 'egunkari-secret-key';
+
+// Auth middleware
+const authenticateUser = (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
 
 // API Routes
-
-// User Registration
-app.post('/api/register', async (req, res, next) => {
+app.post('/api/register', async (req, res) => {
+  const { username, email, password } = req.body;
+  
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Name, email, and password are required' 
-      });
+    const authClient = await authenticate();
+    const users = await readData(authClient, 'users');
+    
+    // Check if user exists
+    const userExists = users.some(user => user.email === email);
+    if (userExists) {
+      return res.status(400).json({ error: 'User already exists' });
     }
     
-    const existingUser = await getUserByEmail(email);
-    if (existingUser) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Email already registered' 
-      });
-    }
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
     
-    const user = await createUser(name, email, password);
-    res.status(201).json({ success: true, user });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// User Login
-app.post('/api/login', async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Email and password are required' 
-      });
-    }
+    // Add new user
+    const newUser = {
+      username,
+      email,
+      password: hashedPassword,
+      createdAt: new Date().toISOString(),
+      followers: [],
+      following: []
+    };
     
-    const user = await authenticate(email, password);
+    await writeData(authClient, 'users', [newUser]);
     
-    // Set cookie
-    res.cookie('authToken', user.token, { 
+    // Generate token
+    const token = jwt.sign({ email, username }, JWT_SECRET, { expiresIn: '7d' });
+    
+    res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
     
-    res.json({ success: true, user });
-  } catch (error) {
-    res.status(401).json({ 
-      success: false, 
-      message: 'Invalid email or password' 
+    res.json({ success: true, user: { username, email } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+  
+  try {
+    const authClient = await authenticate();
+    const users = await readData(authClient, 'users');
+    
+    const user = users.find(u => u.email === email);
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+    
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+    
+    // Generate token
+    const token = jwt.sign({ email: user.email, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
+    
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
+    
+    res.json({ success: true, user: { username: user.username, email: user.email } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Get all posts
-app.get('/api/posts', async (req, res, next) => {
-  try {
-    const posts = await getPosts();
-    res.json({ success: true, posts });
-  } catch (error) {
-    next(error);
-  }
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ success: true });
 });
 
-// Create a new post
-app.post('/api/posts', async (req, res, next) => {
+app.get('/api/user', authenticateUser, async (req, res) => {
   try {
-    const { content, title, authorId } = req.body;
-    if (!content || !title || !authorId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Content, title, and authorId are required' 
-      });
+    const authClient = await authenticate();
+    const users = await readData(authClient, 'users');
+    
+    const user = users.find(u => u.email === req.user.email);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
     
-    const post = await createPost(title, content, authorId);
-    res.status(201).json({ success: true, post });
-  } catch (error) {
-    next(error);
+    // Don't send password back
+    const { password, ...userData } = user;
+    res.json(userData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Get single post
-app.get('/api/posts/:id', async (req, res, next) => {
+app.get('/api/posts', async (req, res) => {
   try {
-    const post = await getPostById(req.params.id);
+    const authClient = await authenticate();
+    const posts = await readData(authClient, 'posts');
+    res.json(posts.reverse()); // Newest first
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/posts/:id', async (req, res) => {
+  try {
+    const authClient = await authenticate();
+    const posts = await readData(authClient, 'posts');
+    const post = posts.find(p => p.id === req.params.id);
+    
     if (!post) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Post not found' 
-      });
+      return res.status(404).json({ error: 'Post not found' });
     }
-    res.json({ success: true, post });
-  } catch (error) {
-    next(error);
+    
+    res.json(post);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Like a post
-app.post('/api/posts/:id/like', async (req, res, next) => {
+app.post('/api/posts', authenticateUser, async (req, res) => {
+  const { title, content, tags } = req.body;
+  
   try {
-    const { userId } = req.body;
-    if (!userId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'userId is required' 
-      });
-    }
+    const authClient = await authenticate();
+    const posts = await readData(authClient, 'posts');
     
-    const post = await likePost(req.params.id, userId);
-    res.json({ success: true, post });
-  } catch (error) {
-    next(error);
+    const newPost = {
+      id: Date.now().toString(),
+      title,
+      content,
+      tags: tags || [],
+      author: req.user.username,
+      authorEmail: req.user.email,
+      createdAt: new Date().toISOString(),
+      likes: [],
+      comments: [],
+      views: 0
+    };
+    
+    await writeData(authClient, 'posts', [...posts, newPost]);
+    res.json(newPost);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Add comment to post
-app.post('/api/posts/:id/comment', async (req, res, next) => {
+app.put('/api/posts/:id/like', authenticateUser, async (req, res) => {
   try {
-    const { userId, content } = req.body;
-    if (!userId || !content) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'userId and content are required' 
-      });
+    const authClient = await authenticate();
+    const posts = await readData(authClient, 'posts');
+    const postIndex = posts.findIndex(p => p.id === req.params.id);
+    
+    if (postIndex === -1) {
+      return res.status(404).json({ error: 'Post not found' });
     }
     
-    const post = await addComment(req.params.id, userId, content);
-    res.json({ success: true, post });
-  } catch (error) {
-    next(error);
+    const post = posts[postIndex];
+    const likeIndex = post.likes.indexOf(req.user.email);
+    
+    if (likeIndex === -1) {
+      // Add like
+      post.likes.push(req.user.email);
+    } else {
+      // Remove like
+      post.likes.splice(likeIndex, 1);
+    }
+    
+    await writeData(authClient, 'posts', posts);
+    res.json({ likes: post.likes });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Follow a user
-app.post('/api/users/:id/follow', async (req, res, next) => {
+app.post('/api/posts/:id/comment', authenticateUser, async (req, res) => {
+  const { text } = req.body;
+  
   try {
-    const { followerId } = req.body;
-    if (!followerId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'followerId is required' 
-      });
+    const authClient = await authenticate();
+    const posts = await readData(authClient, 'posts');
+    const postIndex = posts.findIndex(p => p.id === req.params.id);
+    
+    if (postIndex === -1) {
+      return res.status(404).json({ error: 'Post not found' });
     }
     
-    if (req.params.id === followerId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Cannot follow yourself' 
-      });
-    }
+    const newComment = {
+      id: Date.now().toString(),
+      author: req.user.username,
+      authorEmail: req.user.email,
+      text,
+      createdAt: new Date().toISOString()
+    };
     
-    const user = await followUser(req.params.id, followerId);
-    res.json({ success: true, user });
-  } catch (error) {
-    next(error);
+    posts[postIndex].comments.push(newComment);
+    await writeData(authClient, 'posts', posts);
+    res.json(newComment);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Serve the app
+app.put('/api/users/:username/follow', authenticateUser, async (req, res) => {
+  try {
+    const authClient = await authenticate();
+    const users = await readData(authClient, 'users');
+    
+    const currentUserIndex = users.findIndex(u => u.email === req.user.email);
+    const targetUserIndex = users.findIndex(u => u.username === req.params.username);
+    
+    if (currentUserIndex === -1 || targetUserIndex === -1) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const currentUser = users[currentUserIndex];
+    const targetUser = users[targetUserIndex];
+    
+    // Check if already following
+    const isFollowing = currentUser.following.includes(targetUser.username);
+    
+    if (isFollowing) {
+      // Unfollow
+      currentUser.following = currentUser.following.filter(u => u !== targetUser.username);
+      targetUser.followers = targetUser.followers.filter(u => u !== currentUser.username);
+    } else {
+      // Follow
+      currentUser.following.push(targetUser.username);
+      targetUser.followers.push(currentUser.username);
+    }
+    
+    await writeData(authClient, 'users', users);
+    res.json({ 
+      followers: targetUser.followers,
+      following: currentUser.following 
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Serve SPA
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Handle 404
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Endpoint not found' });
 });
 
 app.listen(port, () => {
